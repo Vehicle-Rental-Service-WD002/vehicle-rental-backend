@@ -49,7 +49,7 @@ public abstract class User {
         if (this.email.equals(inputEmail) && this.password.equals(inputPassword)) {
             return true;
         } else{
-            System.out.println("Login failed: Invalid email or password.");
+            System.out.println("Login failed: Invalid email or password ");
             return false;
         }
     }
