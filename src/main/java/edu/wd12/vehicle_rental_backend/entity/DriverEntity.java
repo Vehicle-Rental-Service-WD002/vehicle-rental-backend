@@ -12,5 +12,6 @@ import lombok.NoArgsConstructor;
 @Table(name = "Drivers")
 @Entity
 public class DriverEntity extends UserEntity{
-    private String vehicleLicenseType;
+    private String licenseNumber;
+    private String licenseType;
 }

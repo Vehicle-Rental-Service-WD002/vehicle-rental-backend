@@ -13,6 +13,7 @@ import java.util.List;
 @RestController
 @RequestMapping("api/drivers")
 @RequiredArgsConstructor
+@CrossOrigin
 public class DriverController {
 
     private final DriverService driverService;

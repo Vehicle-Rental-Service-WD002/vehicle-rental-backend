@@ -26,7 +26,9 @@ public class DriverServiceImpl implements DriverService {
         driver.setUsername(dto.getUsername());
         driver.setEmail(dto.getEmail());
         driver.setPassword(dto.getPassword());
-        driver.setVehicleLicenseType(dto.getVehicleLicenseType());
+        driver.setPhoneNumber(dto.getPhoneNumber());
+        driver.setLicenseNumber(dto.getLicenseNumber());
+        driver.setLicenseType(dto.getLicenseType());
 
         return driverRepository.save(driver);
     }
@@ -45,8 +47,13 @@ public class DriverServiceImpl implements DriverService {
     @Override
     public DriverEntity updateDriver(Long id, DriverDto dto) {
         DriverEntity existingDriver = getDriverById(id);
+
         existingDriver.setUsername(dto.getUsername());
-        existingDriver.setVehicleLicenseType(dto.getVehicleLicenseType());
+        existingDriver.setLicenseNumber(dto.getLicenseType());
+        existingDriver.setLicenseType(dto.getLicenseType());
+        existingDriver.setEmail(dto.getEmail());
+        existingDriver.setPhoneNumber(dto.getPhoneNumber());
+
         return driverRepository.save(existingDriver);
     }
 

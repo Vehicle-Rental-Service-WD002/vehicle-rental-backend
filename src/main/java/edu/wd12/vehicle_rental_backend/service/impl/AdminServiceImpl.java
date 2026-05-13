@@ -27,6 +27,7 @@ public class AdminServiceImpl implements AdminService {
         admin.setEmail(dto.getEmail());
         admin.setPassword(dto.getPassword());
         admin.setAccessLevel(dto.getAccessLevel());
+        admin.setPhoneNumber(dto.getPhoneNumber());
 
         return adminRepository.save(admin);
     }
@@ -47,6 +48,9 @@ public class AdminServiceImpl implements AdminService {
         AdminEntity existingAdmin = getAdminById(id);
         existingAdmin.setUsername(dto.getUsername());
         existingAdmin.setAccessLevel(dto.getAccessLevel());
+        existingAdmin.setEmail(dto.getEmail());
+        existingAdmin.setPassword(dto.getPassword());
+        existingAdmin.setPhoneNumber(dto.getPhoneNumber());
         return adminRepository.save(existingAdmin);
     }
 
