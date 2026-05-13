@@ -7,4 +7,5 @@ public interface ReceiptService {
     ReceiptEntity viewReceipt(Long id);
     ReceiptEntity updateLateFee(Long id, double fee);
     void voidReceipt(Long id);
+    double calculateFinalTotal(double baseCost, double lateFee);
 }
