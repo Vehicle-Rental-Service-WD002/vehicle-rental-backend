@@ -21,5 +21,6 @@ public class VehicleEntity {
     private double dailyRate;
     private int year;
     private String type;
+    private String vehicleNumber;
     private boolean available;
 }

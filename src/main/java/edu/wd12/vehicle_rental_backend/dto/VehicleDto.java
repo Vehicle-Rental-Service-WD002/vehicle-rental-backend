@@ -13,4 +13,5 @@ public class VehicleDto {
     private double dailyRate;
     private int year;
     private String type;
+    private String vehicleNumber;
 }

@@ -24,6 +24,7 @@ public class VehicleServiceImpl implements VehicleService {
         vehicle.setDailyRate(dto.getDailyRate());
         vehicle.setType(dto.getType());
         vehicle.setAvailable(true);
+        vehicle.setVehicleNumber(dto.getVehicleNumber());
 
         return vehicleRepository.save(vehicle);
     }
@@ -53,6 +54,7 @@ public class VehicleServiceImpl implements VehicleService {
         existingVehicle.setYear(dto.getYear());
         existingVehicle.setDailyRate(dto.getDailyRate());
         existingVehicle.setType(dto.getType());
+        existingVehicle.setVehicleNumber(dto.getVehicleNumber());
 
         return vehicleRepository.save(existingVehicle);
     }
