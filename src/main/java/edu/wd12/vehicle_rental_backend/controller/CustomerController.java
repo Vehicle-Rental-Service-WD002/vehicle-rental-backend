@@ -2,6 +2,7 @@ package edu.wd12.vehicle_rental_backend.controller;
 
 import edu.wd12.vehicle_rental_backend.dto.CustomerDto;
 import edu.wd12.vehicle_rental_backend.entity.CustomerEntity;
+import edu.wd12.vehicle_rental_backend.service.CustomerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
