@@ -13,5 +13,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CustomerEntity extends UserEntity{
 
-    private String licenseNumber;
+    private String nationalId;
 }

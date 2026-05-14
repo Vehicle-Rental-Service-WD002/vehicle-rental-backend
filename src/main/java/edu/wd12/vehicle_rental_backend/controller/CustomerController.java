@@ -12,6 +12,7 @@ import java.util.List;
 @RestController
 @RequestMapping("api/customers")
 @RequiredArgsConstructor
+@CrossOrigin
 public class CustomerController {
 
     final CustomerService customerService;
