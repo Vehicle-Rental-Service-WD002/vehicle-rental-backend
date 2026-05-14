@@ -39,7 +39,7 @@ public class CustomerController {
     // UPDATE (PUT /api/customers/{id})
     @PutMapping("/{id}")
     public ResponseEntity<CustomerEntity> updateCustomer(@PathVariable long id, @RequestBody CustomerDto dto) {
-        return new ResponseEntity<>(customerService.updaeCustomer(id, dto), HttpStatus.OK);
+        return new ResponseEntity<>(customerService.updateCustomer(id, dto), HttpStatus.OK);
     }
 
     // DELETE (DELETE /api/customers/{id})
