@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface CustomerService {
 
-    String createCustomer(CustomerDto dto);
+    CustomerEntity createCustomer(CustomerDto dto);
     List<CustomerEntity> getAllCustomers();
     CustomerEntity getCustomerById(Long id);
     CustomerEntity updateCustomer(Long id, CustomerDto dto);

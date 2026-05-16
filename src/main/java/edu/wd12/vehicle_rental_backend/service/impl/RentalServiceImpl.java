@@ -1,7 +1,16 @@
 package edu.wd12.vehicle_rental_backend.service.impl;
 
 import edu.wd12.vehicle_rental_backend.dto.RentalDto;
+import edu.wd12.vehicle_rental_backend.entity.CustomerEntity;
+import edu.wd12.vehicle_rental_backend.entity.DriverEntity;
 import edu.wd12.vehicle_rental_backend.entity.RentalEntity;
+import edu.wd12.vehicle_rental_backend.entity.VehicleEntity;
+import edu.wd12.vehicle_rental_backend.exception.InvalidInputException;
+import edu.wd12.vehicle_rental_backend.exception.ResourceNotFoundException;
+import edu.wd12.vehicle_rental_backend.repository.CustomerRepository;
+import edu.wd12.vehicle_rental_backend.repository.DriverRepository;
+import edu.wd12.vehicle_rental_backend.repository.RentalRepository;
+import edu.wd12.vehicle_rental_backend.repository.VehicleRepository;
 import edu.wd12.vehicle_rental_backend.service.RentalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,18 +31,18 @@ public class RentalServiceImpl implements RentalService {
     public RentalEntity createRental(RentalDto dto) {
 
         CustomerEntity customer = customerRepository.findById(dto.getCustomerId())
-                .orElseThrow(() -> new RuntimeException("Error: Customer not found!"));
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found with id: " + dto.getCustomerId()));
 
         VehicleEntity vehicle = vehicleRepository.findById(dto.getVehicleId())
-                .orElseThrow(() -> new RuntimeException("Error: Vehicle not found!"));
+                .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + dto.getVehicleId()));
 
         if (!vehicle.isAvailable()) {
-            throw new RuntimeException("Error: This vehicle is currently rented out!");
+            throw new InvalidInputException("This vehicle is currently rented out");
         }
 
         long daysRented = ChronoUnit.DAYS.between(dto.getStartDate(), dto.getEndDate());
         if (daysRented < 0) {
-            throw new RuntimeException("Error: End date cannot be before start date!");
+            throw new InvalidInputException("End date cannot be before start date");
         }
         if (daysRented == 0) daysRented = 1; // Minimum 1 day charge
 
@@ -51,13 +60,13 @@ public class RentalServiceImpl implements RentalService {
 
         if (dto.getDriverId() != null) {
             DriverEntity driver = driverRepository.findById(dto.getDriverId())
-                    .orElseThrow(() -> new RuntimeException("Error: Driver not found!"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Driver not found with id: " + dto.getDriverId()));
 
             boolean isDoubleBooked = rentalRepository.isDriverDoubleBooked(
                     driver.getId(), dto.getStartDate(), dto.getEndDate());
 
             if (isDoubleBooked) {
-                throw new RuntimeException("Error: This driver is already booked for these dates!");
+                throw new InvalidInputException("This driver is already booked for these dates");
             }
             rental.setDriver(driver);
         }
@@ -82,7 +91,7 @@ public class RentalServiceImpl implements RentalService {
         RentalEntity rental = getRentalById(id);
 
         if (rental.getStatus().equals("COMPLETED")) {
-            throw new RuntimeException("Error: This rental is already completed.");
+            throw new InvalidInputException("This rental is already completed");
         }
 
         rental.setStatus("COMPLETED");

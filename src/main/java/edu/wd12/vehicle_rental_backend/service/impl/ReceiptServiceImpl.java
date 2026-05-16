@@ -1,7 +1,11 @@
 package edu.wd12.vehicle_rental_backend.service.impl;
 
 import edu.wd12.vehicle_rental_backend.entity.ReceiptEntity;
+import edu.wd12.vehicle_rental_backend.entity.RentalEntity;
+import edu.wd12.vehicle_rental_backend.exception.InvalidInputException;
+import edu.wd12.vehicle_rental_backend.exception.ResourceNotFoundException;
 import edu.wd12.vehicle_rental_backend.repository.ReceiptRepository;
+import edu.wd12.vehicle_rental_backend.repository.RentalRepository;
 import edu.wd12.vehicle_rental_backend.service.ReceiptService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,11 +23,11 @@ public class ReceiptServiceImpl implements ReceiptService {
     public ReceiptEntity generateReceipt(Long rentalId) {
 
         RentalEntity rental = rentalRepository.findById(rentalId)
-                .orElseThrow(() -> new RuntimeException("Error: Rental not found!"));
+                .orElseThrow(() -> new ResourceNotFoundException("Rental not found with id: " + rentalId));
 
 
         if (receiptRepository.findByRentalId(rentalId).isPresent()) {
-            throw new RuntimeException("Error: Receipt already exists for this rental.");
+            throw new InvalidInputException("Receipt already exists for this rental");
         }
 
         ReceiptEntity receipt = new ReceiptEntity();
@@ -40,7 +44,7 @@ public class ReceiptServiceImpl implements ReceiptService {
     @Override
     public ReceiptEntity viewReceipt(Long id) {
         return receiptRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Error: Receipt not found!"));
+                .orElseThrow(() -> new ResourceNotFoundException("Receipt not found with id: " + id));
     }
 
     @Override
@@ -48,7 +52,7 @@ public class ReceiptServiceImpl implements ReceiptService {
         ReceiptEntity receipt = viewReceipt(id);
 
         if (receipt.isVoided()) {
-            throw new RuntimeException("Error: Cannot update a voided receipt.");
+            throw new InvalidInputException("Cannot update a voided receipt");
         }
 
         receipt.setLateFee(fee);

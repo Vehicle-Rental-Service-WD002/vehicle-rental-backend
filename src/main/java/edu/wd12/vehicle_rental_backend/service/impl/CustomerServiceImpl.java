@@ -1,10 +1,12 @@
 package edu.wd12.vehicle_rental_backend.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.wd12.vehicle_rental_backend.dto.CustomerDto;
 import edu.wd12.vehicle_rental_backend.entity.CustomerEntity;
+import edu.wd12.vehicle_rental_backend.exception.DuplicateResourceException;
+import edu.wd12.vehicle_rental_backend.exception.ResourceNotFoundException;
 import edu.wd12.vehicle_rental_backend.repository.CustomerRepository;
 import edu.wd12.vehicle_rental_backend.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import edu.wd12.vehicle_rental_backend.service.CustomerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,22 +20,22 @@ public class CustomerServiceImpl implements CustomerService {
 
     final CustomerRepository customerRepository;
     final UserRepository userRepository;
+    final PasswordEncoder passwordEncoder;
 
     @Override
-    public String createCustomer(CustomerDto dto) {
+    public CustomerEntity createCustomer(CustomerDto dto) {
         if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
-            throw new RuntimeException("Error: Email is already in use!");
+            throw new DuplicateResourceException("Email is already in use");
         }
 
         CustomerEntity customer = new CustomerEntity();
         customer.setUsername(dto.getName());
         customer.setEmail(dto.getEmail());
-        customer.setPassword(dto.getPassword());
+        customer.setPassword(passwordEncoder.encode(dto.getPassword()));
         customer.setPhoneNumber(dto.getPhoneNumber());
         customer.setNationalId(dto.getNationalId());
 
-        customerRepository.save(customer);
-        return "Customer created successfully";
+        return customerRepository.save(customer);
     }
 
     @Override
@@ -43,18 +45,24 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerEntity getCustomerById(Long id) {
-
-        return new ObjectMapper().convertValue(customerRepository.findById(id)
-                        .orElseThrow(() -> new RuntimeException("Error: Customer not found!"))
-                , CustomerEntity.class);
-
+        return customerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found with id: " + id));
     }
 
     @Override
     public CustomerEntity updateCustomer(Long id, CustomerDto dto) {
         CustomerEntity existingCustomer = getCustomerById(id);
 
+        userRepository.findByEmail(dto.getEmail())
+                .filter(user -> !user.getId().equals(id))
+                .ifPresent(user -> {
+                    throw new DuplicateResourceException("Email is already in use");
+                });
+
         existingCustomer.setUsername(dto.getName());
+        existingCustomer.setEmail(dto.getEmail());
+        existingCustomer.setPassword(passwordEncoder.encode(dto.getPassword()));
+        existingCustomer.setPhoneNumber(dto.getPhoneNumber());
         existingCustomer.setNationalId(dto.getNationalId());
 
         return customerRepository.save(existingCustomer);
@@ -62,6 +70,9 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public void deleteCustomer(Long id) {
+        if (!customerRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Customer not found with id: " + id);
+        }
         CustomerEntity existingCustomer = getCustomerById(id);
         customerRepository.delete(existingCustomer);
 

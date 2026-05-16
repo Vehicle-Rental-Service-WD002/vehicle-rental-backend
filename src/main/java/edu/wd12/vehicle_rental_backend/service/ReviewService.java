@@ -8,5 +8,5 @@ import java.util.List;
 public interface ReviewService {
     ReviewEntity submitReview(ReviewDto dto);
     List<ReviewEntity> getAllReviews();
-    void deleteReview(Long id); // Admin feature
+    void deleteReview(Long id);
 }

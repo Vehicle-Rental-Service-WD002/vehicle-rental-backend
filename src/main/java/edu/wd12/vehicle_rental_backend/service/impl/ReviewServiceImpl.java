@@ -1,7 +1,12 @@
 package edu.wd12.vehicle_rental_backend.service.impl;
 
 import edu.wd12.vehicle_rental_backend.dto.ReviewDto;
+import edu.wd12.vehicle_rental_backend.entity.RentalEntity;
 import edu.wd12.vehicle_rental_backend.entity.ReviewEntity;
+import edu.wd12.vehicle_rental_backend.exception.DuplicateResourceException;
+import edu.wd12.vehicle_rental_backend.exception.InvalidInputException;
+import edu.wd12.vehicle_rental_backend.exception.ResourceNotFoundException;
+import edu.wd12.vehicle_rental_backend.repository.RentalRepository;
 import edu.wd12.vehicle_rental_backend.repository.ReviewRepository;
 import edu.wd12.vehicle_rental_backend.service.ReviewService;
 import lombok.RequiredArgsConstructor;
@@ -21,18 +26,18 @@ public class ReviewServiceImpl implements ReviewService {
     public ReviewEntity submitReview(ReviewDto dto) {
 
         RentalEntity rental = rentalRepository.findById(dto.getRentalId())
-                .orElseThrow(() -> new RuntimeException("Error: Rental not found!"));
+                .orElseThrow(() -> new ResourceNotFoundException("Rental not found with id: " + dto.getRentalId()));
 
         if (!rental.getStatus().equals("COMPLETED") && !rental.getStatus().equals("PAID")) {
-            throw new RuntimeException("Error: You can only review a completed rental!");
+            throw new InvalidInputException("You can only review a completed rental");
         }
 
         if (reviewRepository.existsByRentalId(dto.getRentalId())) {
-            throw new RuntimeException("Error: You have already submitted a review for this trip.");
+            throw new DuplicateResourceException("You have already submitted a review for this trip");
         }
 
         if (dto.getRating() < 1 || dto.getRating() > 5) {
-            throw new RuntimeException("Error: Rating must be between 1 and 5.");
+            throw new InvalidInputException("Rating must be between 1 and 5");
         }
 
         ReviewEntity review = new ReviewEntity();
