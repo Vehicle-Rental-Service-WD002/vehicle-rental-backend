@@ -2,7 +2,11 @@ package edu.wd12.vehicle_rental_backend.service.impl;
 
 import edu.wd12.vehicle_rental_backend.dto.PaymentDto;
 import edu.wd12.vehicle_rental_backend.entity.PaymentEntity;
+import edu.wd12.vehicle_rental_backend.entity.RentalEntity;
+import edu.wd12.vehicle_rental_backend.exception.InvalidInputException;
+import edu.wd12.vehicle_rental_backend.exception.ResourceNotFoundException;
 import edu.wd12.vehicle_rental_backend.repository.PaymentRepository;
+import edu.wd12.vehicle_rental_backend.repository.RentalRepository;
 import edu.wd12.vehicle_rental_backend.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,14 +25,14 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentEntity processPayment(PaymentDto dto) {
 
         RentalEntity rental = rentalRepository.findById(dto.getRentalId())
-                .orElseThrow(() -> new RuntimeException("Error: Rental not found!"));
+                .orElseThrow(() -> new ResourceNotFoundException("Rental not found with id: " + dto.getRentalId()));
 
         if (rental.getStatus().equals("PAID")) {
-            throw new RuntimeException("Error: This rental has already been paid for.");
+            throw new InvalidInputException("This rental has already been paid for");
         }
 
         if (dto.getCardNumber() == null || dto.getCardNumber().length() != 16) {
-            throw new RuntimeException("Payment Failed: Invalid Credit Card Number!");
+            throw new InvalidInputException("Invalid credit card number");
         }
 
         PaymentEntity payment = new PaymentEntity();

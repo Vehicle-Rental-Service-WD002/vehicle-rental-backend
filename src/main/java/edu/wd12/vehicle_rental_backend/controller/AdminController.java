@@ -2,7 +2,9 @@ package edu.wd12.vehicle_rental_backend.controller;
 
 import edu.wd12.vehicle_rental_backend.dto.AdminDto;
 import edu.wd12.vehicle_rental_backend.entity.AdminEntity;
+import edu.wd12.vehicle_rental_backend.exception.ApiResponse;
 import edu.wd12.vehicle_rental_backend.service.AdminService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,34 +20,56 @@ public class AdminController {
 
     private final AdminService adminService;
 
-    // CREATE (POST /api/admins)
     @PostMapping
-    public ResponseEntity<AdminEntity> createAdmin(@RequestBody AdminDto dto) {
-        return new ResponseEntity<>(adminService.createAdmin(dto), HttpStatus.CREATED);
+    public ResponseEntity<ApiResponse<AdminEntity>> createAdmin(@Valid @RequestBody AdminDto dto) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(
+                        true,
+                        "Admin created successfully",
+                        adminService.createAdmin(dto)
+                ));
     }
-
-    // READ ALL (GET /api/admins)
+    
     @GetMapping
-    public ResponseEntity<List<AdminEntity>> getAllAdmins() {
-        return new ResponseEntity<>(adminService.getAllAdmins(), HttpStatus.OK);
+    public ResponseEntity<ApiResponse<List<AdminEntity>>> getAllAdmins() {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ApiResponse<>(true,
+                        "Admins retrieved successfully",
+                        adminService.getAllAdmins()
+                ));
     }
 
-    // READ ONE (GET /api/admins/{id})
+
     @GetMapping("/{id}")
-    public ResponseEntity<AdminEntity> getAdminById(@PathVariable Long id) {
-        return new ResponseEntity<>(adminService.getAdminById(id), HttpStatus.OK);
+    public ResponseEntity<ApiResponse<AdminEntity>> getAdminById(@PathVariable Long id) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ApiResponse<>(
+                        true,
+                        "Admin retrieved successfully",
+                        adminService.getAdminById(id)
+                ));
     }
 
-    // UPDATE (PUT /api/admins/{id})
+    
     @PutMapping("/{id}")
-    public ResponseEntity<AdminEntity> updateCustomer(@PathVariable long id, @RequestBody AdminDto dto) {
-        return new ResponseEntity<>(adminService.updateAdmin(id, dto), HttpStatus.OK);
+    public ResponseEntity<ApiResponse<AdminEntity>> updateAdmin(@PathVariable long id, @Valid @RequestBody AdminDto dto) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ApiResponse<>(
+                        true,
+                        "Admin updated successfully",
+                        adminService.updateAdmin(id, dto)
+                ));
     }
 
-    // DELETE (DELETE /api/admins/{id})
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteAdmin(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteAdmin(@PathVariable Long id) {
         adminService.deleteAdmin(id);
-        return new ResponseEntity<>("Admin deleted successfully!", HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ApiResponse<>(
+                        true,
+                        "Admin deleted successfully",
+                        null
+
+                ));
     }
 }

@@ -2,6 +2,7 @@ package edu.wd12.vehicle_rental_backend.service.impl;
 
 import edu.wd12.vehicle_rental_backend.dto.VehicleDto;
 import edu.wd12.vehicle_rental_backend.entity.VehicleEntity;
+import edu.wd12.vehicle_rental_backend.exception.ResourceNotFoundException;
 import edu.wd12.vehicle_rental_backend.repository.VehicleRepository;
 import edu.wd12.vehicle_rental_backend.service.VehicleService;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +43,7 @@ public class VehicleServiceImpl implements VehicleService {
     @Override
     public VehicleEntity getVehicleById(Long id) {
         return vehicleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Error: Vehicle not found!"));
+                .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + id));
     }
 
     @Override
@@ -61,6 +62,9 @@ public class VehicleServiceImpl implements VehicleService {
 
     @Override
     public void deleteVehicle(Long id) {
+        if (!vehicleRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Vehicle not found with id: " + id);
+        }
         vehicleRepository.deleteById(id);
     }
 }

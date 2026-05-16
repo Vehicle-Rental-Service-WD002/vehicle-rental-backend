@@ -2,7 +2,9 @@ package edu.wd12.vehicle_rental_backend.controller;
 
 import edu.wd12.vehicle_rental_backend.dto.VehicleDto;
 import edu.wd12.vehicle_rental_backend.entity.VehicleEntity;
+import edu.wd12.vehicle_rental_backend.exception.ApiResponse;
 import edu.wd12.vehicle_rental_backend.service.VehicleService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,34 +21,65 @@ public class VehicleController {
     private final VehicleService vehicleService;
 
     @PostMapping
-    public ResponseEntity<VehicleEntity> createVehicle(@RequestBody VehicleDto dto) {
-        return new ResponseEntity<>(vehicleService.createVehicle(dto), HttpStatus.CREATED);
+    public ResponseEntity<ApiResponse<VehicleEntity>> createVehicle(@Valid @RequestBody VehicleDto dto) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(
+                        true,
+                        "Vehicle created successfully",
+                        vehicleService.createVehicle(dto)
+                ));
     }
 
     @GetMapping
-    public ResponseEntity<List<VehicleEntity>> getAllVehicles() {
-        return new ResponseEntity<>(vehicleService.getAllVehicles(), HttpStatus.OK);
+    public ResponseEntity<ApiResponse<List<VehicleEntity>>> getAllVehicles() {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new ApiResponse<>(
+                        true,
+                        "Vehicles retrieved successfully",
+                        vehicleService.getAllVehicles()
+                ));
+
     }
 
     @GetMapping("/available")
-    public ResponseEntity<List<VehicleEntity>> getAvailableVehicles() {
-        return new ResponseEntity<>(vehicleService.getAvailableVehicles(), HttpStatus.OK);
+    public ResponseEntity<ApiResponse<List<VehicleEntity>>> getAvailableVehicles() {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new ApiResponse<>(
+                        true,
+                        "Available vehicles retrieved successfully",
+                        vehicleService.getAvailableVehicles()
+                ));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<VehicleEntity> getVehicleById(@PathVariable Long id) {
-        return new ResponseEntity<>(vehicleService.getVehicleById(id), HttpStatus.OK);
+    public ResponseEntity<ApiResponse<VehicleEntity>> getVehicleById(@PathVariable Long id) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new ApiResponse<>(
+                        true,
+                        "Vehicle retrieved successfully",
+                        vehicleService.getVehicleById(id)
+                ));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<VehicleEntity> updateVehicle(@PathVariable Long id, @RequestBody VehicleDto dto) {
-        return new ResponseEntity<>(vehicleService.updateVehicle(id, dto), HttpStatus.OK);
+    public ResponseEntity<ApiResponse<VehicleEntity>> updateVehicle(@PathVariable Long id, @Valid @RequestBody VehicleDto dto) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new ApiResponse<>(
+                        true,
+                        "Vehicle updated successfully",
+                        vehicleService.updateVehicle(id, dto)
+                ));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteVehicle(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteVehicle(@PathVariable Long id) {
         vehicleService.deleteVehicle(id);
-        return new ResponseEntity<>("Vehicle deleted successfully!", HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new ApiResponse<>(
+                        true,
+                        "Vehicle deleted successfully",
+                        null
+                ));
     }
 
 }
