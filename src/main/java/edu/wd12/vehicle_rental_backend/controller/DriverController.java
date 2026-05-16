@@ -2,7 +2,9 @@ package edu.wd12.vehicle_rental_backend.controller;
 
 import edu.wd12.vehicle_rental_backend.dto.DriverDto;
 import edu.wd12.vehicle_rental_backend.entity.DriverEntity;
+import edu.wd12.vehicle_rental_backend.exception.ApiResponse;
 import edu.wd12.vehicle_rental_backend.service.DriverService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,34 +20,54 @@ public class DriverController {
 
     private final DriverService driverService;
 
-    // CREATE (POST /api/drivers)
     @PostMapping
-    public ResponseEntity<DriverEntity> createAdmin(@RequestBody DriverDto dto) {
-        return new ResponseEntity<>(driverService.createDriver(dto), HttpStatus.CREATED);
+    public ResponseEntity<ApiResponse<DriverEntity>> createDriver(@Valid @RequestBody DriverDto dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                new ApiResponse<>(
+                        true,
+                        "Driver created successfully",
+                        driverService.createDriver(dto)
+                ));
     }
 
-    // READ ALL (GET /api/admins)
     @GetMapping
-    public ResponseEntity<List<DriverEntity>> getAllDrivers() {
-        return new ResponseEntity<>(driverService.getAllDrivers(), HttpStatus.OK);
+    public ResponseEntity<ApiResponse<List<DriverEntity>>> getAllDrivers() {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new ApiResponse<>(
+                        true,
+                        "Drivers retrieved successfully",
+                        driverService.getAllDrivers()
+                ));
     }
 
-    // READ ONE (GET /api/admins/{id})
     @GetMapping("/{id}")
-    public ResponseEntity<DriverEntity> getDriverById(@PathVariable Long id) {
-        return new ResponseEntity<>(driverService.getDriverById(id), HttpStatus.OK);
+    public ResponseEntity<ApiResponse<DriverEntity>> getDriverById(@PathVariable Long id) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new ApiResponse<>(
+                        true,
+                        "Driver retrieved successfully",
+                        driverService.getDriverById(id)
+                ));
     }
 
-    // UPDATE (PUT /api/admins/{id})
     @PutMapping("/{id}")
-    public ResponseEntity<DriverEntity> updateCustomer(@PathVariable long id, @RequestBody DriverDto dto) {
-        return new ResponseEntity<>(driverService.updateDriver(id, dto), HttpStatus.OK);
+    public ResponseEntity<ApiResponse<DriverEntity>> updateDriver(@PathVariable long id, @Valid @RequestBody DriverDto dto) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new ApiResponse<>(
+                        true,
+                        "Driver updated successfully",
+                        driverService.updateDriver(id, dto)
+                ));
     }
 
-    // DELETE (DELETE /api/admins/{id})
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteAdmin(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteDriver(@PathVariable Long id) {
         driverService.deleteDriver(id);
-        return new ResponseEntity<>("Driver deleted successfully!", HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new ApiResponse<>(
+                        true,
+                        "Driver deleted successfully",
+                        null
+                ));
     }
 }

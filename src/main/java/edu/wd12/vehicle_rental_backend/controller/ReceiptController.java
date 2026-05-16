@@ -1,6 +1,7 @@
 package edu.wd12.vehicle_rental_backend.controller;
 
 import edu.wd12.vehicle_rental_backend.entity.ReceiptEntity;
+import edu.wd12.vehicle_rental_backend.exception.ApiResponse;
 import edu.wd12.vehicle_rental_backend.service.ReceiptService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,23 +16,43 @@ public class ReceiptController {
     private final ReceiptService receiptService;
 
     @PostMapping("/generate/{rentalId}")
-    public ResponseEntity<ReceiptEntity> generateReceipt(@PathVariable Long rentalId) {
-        return new ResponseEntity<>(receiptService.generateReceipt(rentalId), HttpStatus.CREATED);
+    public ResponseEntity<ApiResponse<ReceiptEntity>> generateReceipt(@PathVariable Long rentalId) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                new ApiResponse<>(
+                        true,
+                        "Receipt generated successfully",
+                        receiptService.generateReceipt(rentalId)
+                ));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ReceiptEntity> viewReceipt(@PathVariable Long id) {
-        return new ResponseEntity<>(receiptService.viewReceipt(id), HttpStatus.OK);
+    public ResponseEntity<ApiResponse<ReceiptEntity>> viewReceipt(@PathVariable Long id) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new ApiResponse<>(
+                        true,
+                        "Receipt retrieved successfully",
+                        receiptService.viewReceipt(id)
+                ));
     }
 
     @PutMapping("/{id}/late-fee")
-    public ResponseEntity<ReceiptEntity> updateLateFee(@PathVariable Long id, @RequestParam double fee) {
-        return new ResponseEntity<>(receiptService.updateLateFee(id, fee), HttpStatus.OK);
+    public ResponseEntity<ApiResponse<ReceiptEntity>> updateLateFee(@PathVariable Long id, @RequestParam double fee) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new ApiResponse<>(
+                        true,
+                        "Late fee updated successfully",
+                        receiptService.updateLateFee(id, fee)
+                ));
     }
 
     @DeleteMapping("/{id}/void")
-    public ResponseEntity<String> voidReceipt(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> voidReceipt(@PathVariable Long id) {
         receiptService.voidReceipt(id);
-        return new ResponseEntity<>("Receipt has been successfully voided.", HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new ApiResponse<>(
+                        true,
+                        "Receipt voided successfully",
+                        null
+                ));
     }
 }

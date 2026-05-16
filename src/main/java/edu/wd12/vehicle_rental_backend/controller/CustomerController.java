@@ -2,7 +2,9 @@ package edu.wd12.vehicle_rental_backend.controller;
 
 import edu.wd12.vehicle_rental_backend.dto.CustomerDto;
 import edu.wd12.vehicle_rental_backend.entity.CustomerEntity;
+import edu.wd12.vehicle_rental_backend.exception.ApiResponse;
 import edu.wd12.vehicle_rental_backend.service.CustomerService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,35 +20,56 @@ public class CustomerController {
 
     final CustomerService customerService;
 
-    // CREATE (POST /api/customers)
     @PostMapping
-    public ResponseEntity<String> createCustomer(@RequestBody CustomerDto dto) {
-        return new ResponseEntity<>(customerService.createCustomer(dto), HttpStatus.CREATED);
+    public ResponseEntity<ApiResponse<CustomerEntity>> createCustomer(@Valid @RequestBody CustomerDto dto) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(
+                        true,
+                        "Customer created successfully",
+                        customerService.createCustomer(dto)
+        ));
     }
 
-    // READ ALL (GET /api/customers)
     @GetMapping
-    public ResponseEntity<List<CustomerEntity>> getAllCustomers() {
-        return new ResponseEntity<>(customerService.getAllCustomers(), HttpStatus.OK);
+    public ResponseEntity<ApiResponse<List<CustomerEntity>>> getAllCustomers() {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ApiResponse<>(
+                        true,
+                        "Customers retrieved successfully",
+                        customerService.getAllCustomers()
+        ));
     }
 
-    // READ ONE (GET /api/customers/{id})
     @GetMapping("/{id}")
-    public ResponseEntity<CustomerEntity> getCustomerById(@PathVariable Long id) {
-        return new ResponseEntity<>(customerService.getCustomerById(id), HttpStatus.OK);
+    public ResponseEntity<ApiResponse<CustomerEntity>> getCustomerById(@PathVariable Long id) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new ApiResponse<>(
+                        true,
+                        "Customer retrieved successfully",
+                        customerService.getCustomerById(id)
+        ));
     }
 
-    // UPDATE (PUT /api/customers/{id})
     @PutMapping("/{id}")
-    public ResponseEntity<CustomerEntity> updateCustomer(@PathVariable long id, @RequestBody CustomerDto dto) {
-        return new ResponseEntity<>(customerService.updateCustomer(id, dto), HttpStatus.OK);
+    public ResponseEntity<ApiResponse<CustomerEntity>> updateCustomer(@PathVariable long id, @Valid @RequestBody CustomerDto dto) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new ApiResponse<>(
+                        true,
+                        "Customer updated successfully",
+                        customerService.updateCustomer(id, dto)
+        ));
     }
 
-    // DELETE (DELETE /api/customers/{id})
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteCustomer(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteCustomer(@PathVariable Long id) {
         customerService.deleteCustomer(id);
-        return new ResponseEntity<>("Customer deleted successfully!", HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new ApiResponse<>(
+                        true,
+                        "Customer deleted successfully",
+                        null
+        ));
+
     }
 
 }
