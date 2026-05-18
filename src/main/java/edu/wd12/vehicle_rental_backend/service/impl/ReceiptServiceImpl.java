@@ -10,6 +10,7 @@ import edu.wd12.vehicle_rental_backend.service.ReceiptService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -59,6 +60,11 @@ public class ReceiptServiceImpl implements ReceiptService {
         receipt.setFinalTotal(calculateFinalTotal(receipt.getBaseCost(), fee));
 
         return receiptRepository.save(receipt);
+    }
+
+    @Override
+    public List<ReceiptEntity> getAllRecipts() {
+        return receiptRepository.findAll();
     }
 
     @Override
