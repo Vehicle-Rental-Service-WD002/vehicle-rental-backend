@@ -96,7 +96,7 @@ export function createCustomerBookRentalPage({ user, query }) {
                             The backend calculates the final <strong>totalCost</strong>. The live estimate here is for planning only.
                         </div>
 
-                        <button class="button" type="submit">Confirm rental</button>
+                        <button class="button" type="submit">Proceed to Payment</button>
                     </form>
                 </article>
 
@@ -125,6 +125,114 @@ export function createCustomerBookRentalPage({ user, query }) {
             startDate.min = today;
             endDate.min = today;
 
+            // Track all rentals for filtering available drivers (DECLARE FIRST)
+            let allRentals = [];
+
+            async function loadAllRentals() {
+                try {
+                    const response = await api.get("/rentals", { fallbackData: [] });
+                    allRentals = Array.isArray(response.data) ? response.data : [];
+                } catch (error) {
+                    console.error("Error loading rentals:", error);
+                    allRentals = [];
+                }
+            }
+
+            function getAvailableDrivers(selectedStart, selectedEnd) {
+                if (!selectedStart || !selectedEnd) {
+                    return drivers; // Show all drivers if no dates selected
+                }
+
+                const selectedStartDate = new Date(selectedStart);
+                const selectedEndDate = new Date(selectedEnd);
+
+                // Filter out drivers with conflicting rentals
+                return drivers.filter((driver) => {
+                    const hasConflict = allRentals.some((rental) => {
+                        // Only check ACTIVE rentals
+                        if (rental.status !== "ACTIVE") return false;
+                        // Check if this rental is for this driver
+                        if (rental.driver?.id !== driver.id) return false;
+
+                        const rentalStart = new Date(rental.startDate);
+                        const rentalEnd = new Date(rental.endDate);
+
+                        // Check for overlapping dates
+                        return selectedStartDate < rentalEnd && selectedEndDate > rentalStart;
+                    });
+
+                    return !hasConflict; // Return driver if no conflict
+                });
+            }
+
+            function updateEstimate() {
+                const selectedVehicle = vehicles.find((vehicle) => String(vehicle.id) === vehicleSelect.value);
+                const days = rentalDurationDays(startDate.value, endDate.value);
+                const estimate = selectedVehicle ? Number(selectedVehicle.dailyRate || 0) * days : 0;
+
+                stats.innerHTML = `
+                    ${renderMetricCard("Selected vehicle", selectedVehicle ? `${selectedVehicle.brand} ${selectedVehicle.model}` : "Pick one")}
+                    ${renderMetricCard("Estimated trip days", String(days))}
+                    ${renderMetricCard("Estimated total", formatCurrency(estimate), "Server total may differ")}
+                `;
+
+                // Update available drivers based on selected dates
+                const availableDrivers = getAvailableDrivers(startDate.value, endDate.value);
+                const currentDriverId = driverSelect.value;
+
+                // Check if currently selected driver is still available
+                const isCurrentDriverAvailable = currentDriverId === "" || availableDrivers.some(d => String(d.id) === currentDriverId);
+
+                // If current driver is no longer available, reset selection
+                if (!isCurrentDriverAvailable) {
+                    driverSelect.value = "";
+                }
+
+                // Update driver dropdown to show only available drivers
+                driverSelect.innerHTML = `
+                    <option value="">Self-drive</option>
+                    ${availableDrivers.map(renderDriverOption).join("")}
+                `;
+
+                // Restore previously selected driver if still available
+                if (isCurrentDriverAvailable && currentDriverId) {
+                    driverSelect.value = currentDriverId;
+                }
+
+                const driver = availableDrivers.find((entry) => String(entry.id) === driverSelect.value);
+                const availableCount = availableDrivers.length;
+                const unavailableCount = drivers.length - availableCount;
+
+                summaryPanel.innerHTML = `
+                    <div class="summary-stack">
+                        <div class="summary-row">
+                            <span class="muted">Vehicle</span>
+                            <strong>${escapeHtml(selectedVehicle ? `${selectedVehicle.brand} ${selectedVehicle.model}` : "Not selected")}</strong>
+                        </div>
+                        <div class="summary-row">
+                            <span class="muted">Trip dates</span>
+                            <strong>${escapeHtml(startDate.value && endDate.value ? `${formatDate(startDate.value)} → ${formatDate(endDate.value)}` : "Choose travel dates")}</strong>
+                        </div>
+                        <div class="summary-row">
+                            <span class="muted">Driver preference</span>
+                            <strong>${escapeHtml(driver ? getUserLabel(driver) : "Self-drive")}</strong>
+                        </div>
+                        ${unavailableCount > 0 ? `
+                            <div class="inline-alert info">
+                                <span class="muted small">${unavailableCount} driver(s) unavailable for these dates</span>
+                            </div>
+                        ` : ""}
+                        <div class="summary-row">
+                            <span class="muted">Estimated total</span>
+                            <strong>${formatCurrency(estimate)}</strong>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Load vehicles and drivers from API
+            await loadAllRentals();
+
             const [vehicleResponse, driverResponse] = await Promise.all([
                 api.get("/vehicles/available", { fallbackData: cloneFallback(fallbackVehicles.filter((vehicle) => vehicle.available)) }),
                 api.get("/drivers", { fallbackData: cloneFallback(fallbackDrivers) })
@@ -151,43 +259,11 @@ export function createCustomerBookRentalPage({ user, query }) {
                 ${drivers.map(renderDriverOption).join("")}
             `;
 
-            function updateEstimate() {
-                const selectedVehicle = vehicles.find((vehicle) => String(vehicle.id) === vehicleSelect.value);
-                const days = rentalDurationDays(startDate.value, endDate.value);
-                const estimate = selectedVehicle ? Number(selectedVehicle.dailyRate || 0) * days : 0;
-
-                stats.innerHTML = `
-                    ${renderMetricCard("Selected vehicle", selectedVehicle ? `${selectedVehicle.brand} ${selectedVehicle.model}` : "Pick one")}
-                    ${renderMetricCard("Estimated trip days", String(days))}
-                    ${renderMetricCard("Estimated total", formatCurrency(estimate), "Server total may differ")}
-                `;
-
-                const driver = drivers.find((entry) => String(entry.id) === driverSelect.value);
-                summaryPanel.innerHTML = `
-                    <div class="summary-stack">
-                        <div class="summary-row">
-                            <span class="muted">Vehicle</span>
-                            <strong>${escapeHtml(selectedVehicle ? `${selectedVehicle.brand} ${selectedVehicle.model}` : "Not selected")}</strong>
-                        </div>
-                        <div class="summary-row">
-                            <span class="muted">Trip dates</span>
-                            <strong>${escapeHtml(startDate.value && endDate.value ? `${formatDate(startDate.value)} → ${formatDate(endDate.value)}` : "Choose travel dates")}</strong>
-                        </div>
-                        <div class="summary-row">
-                            <span class="muted">Driver preference</span>
-                            <strong>${escapeHtml(driver ? getUserLabel(driver) : "Self-drive")}</strong>
-                        </div>
-                        <div class="summary-row">
-                            <span class="muted">Estimated total</span>
-                            <strong>${formatCurrency(estimate)}</strong>
-                        </div>
-                    </div>
-                `;
-            }
-
             [vehicleSelect, driverSelect, startDate, endDate].forEach((element) => {
                 element.addEventListener("change", updateEstimate);
             });
+
+            updateEstimate();
 
             form.addEventListener("submit", async (event) => {
                 event.preventDefault();
@@ -195,6 +271,7 @@ export function createCustomerBookRentalPage({ user, query }) {
 
                 const selectedVehicle = vehicles.find((vehicle) => String(vehicle.id) === vehicleSelect.value);
                 const days = rentalDurationDays(startDate.value, endDate.value);
+                const estimatedCost = selectedVehicle ? Number(selectedVehicle.dailyRate || 0) * days : 0;
 
                 if (!user?.id) {
                     feedback.innerHTML = renderAlert("Your account does not include a customer ID, so booking cannot continue.", "error");
@@ -211,11 +288,26 @@ export function createCustomerBookRentalPage({ user, query }) {
                     return;
                 }
 
+                // Show payment modal
+                const paymentModal = createPaymentModal(estimatedCost, async (paymentMethod) => {
+                    await processRentalWithPayment(paymentMethod, estimatedCost);
+                });
+                document.body.appendChild(paymentModal);
+            });
+
+            async function processRentalWithPayment(paymentMethod, estimatedCost) {
                 const submitButton = form.querySelector('button[type="submit"]');
                 submitButton.disabled = true;
-                setElementHtml(summaryPanel, renderSpinner("Creating rental and fetching server confirmation..."));
+                setElementHtml(summaryPanel, renderSpinner("Processing payment and creating rental..."));
 
                 try {
+                    // Simulate payment processing (1-2 seconds)
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    showToast(`Payment received via ${paymentMethod === "card" ? "Credit Card" : "Cash"}!`, "success");
+
+                    const selectedVehicle = vehicles.find((vehicle) => String(vehicle.id) === vehicleSelect.value);
+                    const days = rentalDurationDays(startDate.value, endDate.value);
+
                     const createResponse = await api.post("/rentals", {
                         customerId: Number(user.id),
                         vehicleId: Number(vehicleSelect.value),
@@ -240,15 +332,75 @@ export function createCustomerBookRentalPage({ user, query }) {
                             ${renderMetricCard("Estimated total", formatCurrency(confirmedRental.totalCost), "Confirmed by backend")}
                         `;
                     }
+
+                    // Clear form for next booking
+                    form.reset();
+                    vehicleSelect.value = "";
+                    driverSelect.value = "";
+                    updateEstimate();
                 } catch (error) {
-                    summaryPanel.innerHTML = renderAlert("Booking could not be completed. Fix any validation issues and try again.", "error");
+                    summaryPanel.innerHTML = renderAlert("Payment successful but booking could not be completed. Try again or contact support.", "error");
                     feedback.innerHTML = renderAlert(error.message || "Rental creation failed.", "error");
                 } finally {
                     submitButton.disabled = false;
+                    // Close payment modal
+                    const modal = document.querySelector('[data-payment-modal]');
+                    if (modal) modal.remove();
                 }
-            });
+            }
 
-            updateEstimate();
+            function createPaymentModal(amount, onPaymentMethod) {
+                const modal = document.createElement("div");
+                modal.setAttribute("data-payment-modal", "true");
+                modal.className = "payment-modal-overlay";
+                modal.innerHTML = `
+                    <div class="payment-modal-card">
+                        <div class="payment-modal-header">
+                            <h3>Select Payment Method</h3>
+                            <p>Total Amount: <span class="amount-highlight">${formatCurrency(amount)}</span></p>
+                        </div>
+                        <div class="payment-modal-body">
+                            <button class="payment-option" data-method="card">
+                                <span class="payment-icon">💳</span>
+                                <div>
+                                    <strong>Credit/Debit Card</strong>
+                                    <small>Visa, Mastercard, Amex</small>
+                                </div>
+                            </button>
+                            <button class="payment-option" data-method="cash">
+                                <span class="payment-icon">💵</span>
+                                <div>
+                                    <strong>Pay at Counter</strong>
+                                    <small>Cash payment on pickup</small>
+                                </div>
+                            </button>
+                        </div>
+                        <p class="payment-modal-footer">Booking will be confirmed after payment (1-2 seconds)</p>
+                        <button class="button button-secondary payment-modal-close">Cancel</button>
+                    </div>
+                `;
+
+                modal.querySelector(".payment-modal-close").addEventListener("click", (e) => {
+                    e.preventDefault();
+                    modal.remove();
+                    const submitButton = form.querySelector('button[type="submit"]');
+                    submitButton.disabled = false;
+                });
+
+                modal.querySelectorAll("[data-method]").forEach((btn) => {
+                    btn.addEventListener("click", (e) => {
+                        e.preventDefault();
+                        const method = btn.getAttribute("data-method");
+                        modal.querySelectorAll("[data-method]").forEach(b => b.classList.remove("active"));
+                        btn.classList.add("active");
+                        btn.textContent = "Processing...";
+                        btn.disabled = true;
+                        onPaymentMethod(method);
+                    });
+                });
+
+                return modal;
+            }
         }
     };
 }
