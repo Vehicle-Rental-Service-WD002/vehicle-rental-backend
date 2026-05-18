@@ -56,7 +56,6 @@ public class RentalServiceImpl implements RentalService {
         rental.setVehicle(vehicle);
         rental.setStartDate(dto.getStartDate());
         rental.setEndDate(dto.getEndDate());
-        rental.setTotalCost(finalCost);
 
         if (dto.getDriverId() != null) {
             DriverEntity driver = driverRepository.findById(dto.getDriverId())
@@ -68,10 +67,15 @@ public class RentalServiceImpl implements RentalService {
             if (isDoubleBooked) {
                 throw new InvalidInputException("This driver is already booked for these dates");
             }
+            if (!"Standard".equals(driver.getLicenseType())) {
+                finalCost += 20 * daysRented;
+            } else {
+                finalCost += 10 * daysRented;
+            }
+
             rental.setDriver(driver);
         }
-        rental.setStartDate(dto.getStartDate());
-
+        rental.setTotalCost(finalCost);
         return rentalRepository.save(rental);
     }
 

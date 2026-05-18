@@ -31,13 +31,13 @@ public class AuthUserServiceImpl implements AuthUserService {
             throw new InvalidInputException("Invalid email or password");
         }
 
-        String role = "UNKNOWN";
+        String role = "unknown";
 
-        if (userEntity instanceof AdminEntity admin) {
-            role = admin.getAccessLevel();
+        if (userEntity instanceof AdminEntity) {
+            role = "admin";
         }
         else if (userEntity instanceof DriverEntity) {
-            role = "DRIVER";
+            role = "driver";
         }
         else if (userEntity instanceof CustomerEntity) {
             role = "customer";
