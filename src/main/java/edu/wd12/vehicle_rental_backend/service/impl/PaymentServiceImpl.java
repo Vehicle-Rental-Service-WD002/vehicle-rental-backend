@@ -31,9 +31,9 @@ public class PaymentServiceImpl implements PaymentService {
             throw new InvalidInputException("This rental has already been paid for");
         }
 
-        if (dto.getCardNumber() == null || dto.getCardNumber().length() != 16) {
-            throw new InvalidInputException("Invalid credit card number");
-        }
+//        if (dto.getCardNumber() == null || dto.getCardNumber().length() != 16) {
+//            throw new InvalidInputException("Invalid credit card number");
+//        }
 
         PaymentEntity payment = new PaymentEntity();
         payment.setRental(rental);

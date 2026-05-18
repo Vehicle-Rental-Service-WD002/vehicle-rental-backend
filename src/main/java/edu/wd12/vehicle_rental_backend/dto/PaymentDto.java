@@ -14,9 +14,9 @@ public class PaymentDto {
     @NotNull(message = "Rental ID is required")
     private Long rentalId;
 
-    @NotBlank(message = "Card number is required")
-    @Size(min = 16, max = 16, message = "Card number must be exactly 16 digits")
-    private String cardNumber;
+//    @NotBlank(message = "Card number is required")
+//    @Size(min = 16, max = 16, message = "Card number must be exactly 16 digits")
+//    private String cardNumber;
 
     @NotBlank(message = "Payment method is required")
     private String paymentMethod;
