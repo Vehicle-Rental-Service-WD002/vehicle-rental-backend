@@ -15,6 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/rentals")
 @RequiredArgsConstructor
+@CrossOrigin
 public class RentalController {
     private final RentalService rentalService;
 
@@ -47,6 +48,16 @@ public class RentalController {
                         rentalService.getRentalById(id)
                 ));
     }
+
+//    @GetMapping("/{customer_id}")
+//    public ResponseEntity<ApiResponse<RentalEntity>> getRentalByCustomerId(@PathVariable Long customer_id) {
+//        return ResponseEntity.status(HttpStatus.OK).body(
+//                new ApiResponse<>(
+//                        true,
+//                        "Rentals Retrieved by Customer ID SUccessfully",
+//                        rentalService.getRentalByCustomerId(customer_id)
+//                ));
+//    }
 
     @PutMapping("/{id}/complete")
     public ResponseEntity<ApiResponse<RentalEntity>> completeRental(@PathVariable Long id) {
